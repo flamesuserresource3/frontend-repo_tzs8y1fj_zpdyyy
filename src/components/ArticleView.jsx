@@ -39,7 +39,7 @@ export default function ArticleView({ article, onNavigate }) {
   if (!article) return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-2">Willkommen</h1>
-      <p className="text-neutral-700 dark:text-neutral-300">Diese Enzyklopädie bietet prägnante Erklärungen in genau fünf Sätzen pro Begriff. Verwenden Sie die Suche oder die alphabetische Navigation, um zu starten.</p>
+      <p className="text-neutral-700 dark:text-neutral-300">Diese Enzyklopädie bietet prägnante Erklärungen in genau fünf Sätzen pro Begriff. Verwenden Sie die Suche, Kategorien oder die alphabetische Navigation, um zu starten.</p>
     </div>
   )
 

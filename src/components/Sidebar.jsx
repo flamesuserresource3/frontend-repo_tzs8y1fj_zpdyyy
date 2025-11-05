@@ -1,13 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 export default function Sidebar({ items, current, onSelect }) {
   const [open, setOpen] = useState(false)
-  const groups = items.reduce((acc, title) => {
-    const letter = title[0].toUpperCase()
-    if (!acc[letter]) acc[letter] = []
-    acc[letter].push(title)
-    return acc
-  }, {})
+  const groups = useMemo(() => {
+    return items.reduce((acc, it) => {
+      const title = typeof it === 'string' ? it : it.title
+      const letter = title[0].toUpperCase()
+      if (!acc[letter]) acc[letter] = []
+      acc[letter].push(title)
+      return acc
+    }, {})
+  }, [items])
   const letters = Object.keys(groups).sort()
 
   return (

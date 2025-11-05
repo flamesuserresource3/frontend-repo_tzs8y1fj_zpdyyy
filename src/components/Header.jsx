@@ -16,17 +16,39 @@ export default function Header({ query, onQueryChange, suggestions, onSelectSugg
   const [open, setOpen] = useState(false)
   const inputRef = useRef(null)
   const listRef = useRef(null)
+  const [activeIndex, setActiveIndex] = useState(-1)
 
   useEffect(() => {
     const handleClick = (e) => {
       if (!listRef.current) return
       if (!listRef.current.contains(e.target) && e.target !== inputRef.current) {
         setOpen(false)
+        setActiveIndex(-1)
       }
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
   }, [])
+
+  const onKeyDown = (e) => {
+    if (!open) return
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex((i) => Math.min(i + 1, suggestions.length - 1))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((i) => Math.max(i - 1, 0))
+    } else if (e.key === 'Enter') {
+      if (activeIndex >= 0 && activeIndex < suggestions.length) {
+        onSelectSuggestion(suggestions[activeIndex].title)
+        setOpen(false)
+        setActiveIndex(-1)
+      }
+    } else if (e.key === 'Escape') {
+      setOpen(false)
+      setActiveIndex(-1)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-20 bg-white/95 dark:bg-neutral-900/90 backdrop-blur border-b border-neutral-200 dark:border-neutral-800">
@@ -39,8 +61,9 @@ export default function Header({ query, onQueryChange, suggestions, onSelectSugg
             ref={inputRef}
             type="search"
             value={query}
-            onChange={(e) => { onQueryChange(e.target.value); setOpen(true) }}
+            onChange={(e) => { onQueryChange(e.target.value); setOpen(true); setActiveIndex(-1) }}
             onFocus={() => setOpen(true)}
+            onKeyDown={onKeyDown}
             placeholder="Begriff suchen…"
             className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-600 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400"
             aria-autocomplete="list"
@@ -52,18 +75,26 @@ export default function Header({ query, onQueryChange, suggestions, onSelectSugg
               id="suggestions-list"
               ref={listRef}
               role="listbox"
-              className="absolute mt-1 w-full max-h-64 overflow-auto rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg"
+              className="absolute mt-1 w-full max-h-72 overflow-auto rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 shadow-lg"
             >
               {suggestions.map((s, i) => (
                 <li
-                  key={s}
+                  key={s.slug || s.title}
                   role="option"
+                  aria-selected={i === activeIndex}
                   tabIndex={0}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => { onSelectSuggestion(s); setOpen(false) }}
-                  className="px-3 py-2 text-sm cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-100"
+                  onClick={() => { onSelectSuggestion(s.title); setOpen(false) }}
+                  className={`px-3 py-2 text-sm cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-800 dark:text-neutral-100 flex items-center justify-between ${i === activeIndex ? 'bg-neutral-100 dark:bg-neutral-800' : ''}`}
                 >
-                  {s}
+                  <span>{s.title}</span>
+                  {s.categories && s.categories.length > 0 && (
+                    <span className="ml-3 hidden sm:flex gap-1">
+                      {s.categories.slice(0, 2).map((c) => (
+                        <span key={c} className="text-[10px] px-1.5 py-0.5 rounded border border-neutral-300 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300">{c}</span>
+                      ))}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
